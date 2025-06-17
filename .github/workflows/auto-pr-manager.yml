@@ -31,13 +31,7 @@ jobs:
               assignees: [author] // Assign the author
             });
 
-            // Request review from the owner
-            await github.rest.pulls.requestReviewers({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pr.number,
-              reviewers: reviewers // Add the owner as a reviewer
-            });
+            
 
       - name: Add PR to Project & Set Status on review request
         if: github.event_name == 'pull_request' && github.event.action == 'review_requested'

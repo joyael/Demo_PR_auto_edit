@@ -38,33 +38,37 @@ jobs:
         if: github.event_name == 'pull_request' && github.event.action == 'review_requested'
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const pr = context.payload.pull_request;
             const projectName = "GitHub Issue Tracker Sync";
             const statusFieldName = "Status";
             const statusOptionName = "Todo";
             const prNodeId = pr.node_id;
-
-            // Fetch Project
+      
+            // Fetch all Projects to find the one with matching name
             const projectRes = await github.graphql(`
-              query($owner:String!, $repo:String!, $projName:String!) {
-                repository(owner:$owner, name:$repo) {
-                  projectV2(number:0, first:100, query:$projName) {
-                    nodes { id title }
+              query($owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) {
+                  projectsV2(first: 10) {
+                    nodes {
+                      id
+                      title
+                    }
                   }
                 }
               }
             `, {
               owner: context.repo.owner,
-              repo: context.repo.repo,
-              projName: projectName
+              repo: context.repo.repo
             });
-            const project = projectRes.repository.projectV2.nodes.find(p => p.title === projectName);
+      
+            const projects = projectRes.repository.projectsV2.nodes;
+            const project = projects.find(p => p.title === projectName);
             if (!project) throw new Error(`Project "${projectName}" not found`);
             const projectId = project.id;
-
-            // Add PR item to Project
+      
+            // Add PR to Project
             const addRes = await github.graphql(`
               mutation($projectId:ID!, $contentId:ID!) {
                 addProjectV2ItemById(input:{projectId:$projectId, contentId:$contentId}) {
@@ -72,17 +76,23 @@ jobs:
                 }
               }
             `, { projectId, contentId: prNodeId });
+      
             const itemId = addRes.addProjectV2ItemById.item.id;
-
-            // Query fields to find "Status" field & "Todo" option
+      
+            // Get project fields to locate "Status"
             const fieldsRes = await github.graphql(`
-              query($projectId:ID!) {
-                node(id:$projectId) {
+              query($projectId: ID!) {
+                node(id: $projectId) {
                   ... on ProjectV2 {
-                    fields(first:20) {
+                    fields(first: 20) {
                       nodes {
                         ... on ProjectV2SingleSelectField {
-                          id name options { id name }
+                          id
+                          name
+                          options {
+                            id
+                            name
+                          }
                         }
                       }
                     }
@@ -90,21 +100,24 @@ jobs:
                 }
               }
             `, { projectId });
+      
             const statusField = fieldsRes.node.fields.nodes.find(f => f.name === statusFieldName);
             if (!statusField) throw new Error(`Field "${statusFieldName}" not found`);
             const statusOption = statusField.options.find(o => o.name === statusOptionName);
             if (!statusOption) throw new Error(`Option "${statusOptionName}" not found`);
-
-            // Update status on the item
+      
+            // Update status
             await github.graphql(`
-              mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $optionId:ID!) {
-                updateProjectV2ItemFieldValue(input:{
-                  projectId:$projectId,
-                  itemId:$itemId,
-                  fieldId:$fieldId,
-                  value:{ singleSelectOptionId: $optionId }
+              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: ID!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $projectId,
+                  itemId: $itemId,
+                  fieldId: $fieldId,
+                  value: { singleSelectOptionId: $optionId }
                 }) {
-                  projectV2Item { id }
+                  projectV2Item {
+                    id
+                  }
                 }
               }
             `, {
@@ -113,3 +126,6 @@ jobs:
               fieldId: statusField.id,
               optionId: statusOption.id
             });
+      
+            console.log("✅ Pull Request added to project and status set.");
+      

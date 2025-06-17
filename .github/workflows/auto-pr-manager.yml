@@ -90,8 +90,7 @@ jobs:
                         ... on ProjectV2SingleSelectField {
                           id
                           name
-                          options 
-                          ... on ProjectV2SingleSelectField {
+                          options {
                             id
                             name
                           }

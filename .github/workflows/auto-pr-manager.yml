@@ -24,12 +24,13 @@ jobs:
             const reviewers = [owner]; // Owner as reviewer
 
             // Assign the author as an assignee
-            await github.rest.pulls.update({
+            await github.rest.issues.addAssignees({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: pr.number,
-              assignees: [author] // Assign the author
+              issue_number: pr.number,
+              assignees: [author]
             });
+
 
             
 

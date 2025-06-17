@@ -170,7 +170,7 @@ jobs:
               projectId,
               itemId,
               fieldId: statusField.id,
-              optionId: `PVTSO_lAHOBPugB84A6p1-${statusOption.id}`
+              optionId: `PVTSSO_lAHOBPugB84A6p1-${statusOption.id}`
             });
       
             console.log("✅ Pull Request added to project and status set.");

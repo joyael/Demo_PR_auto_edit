@@ -136,7 +136,7 @@ jobs:
               projectId,
               itemId,
               fieldId: statusField.id,
-              optionId: statusOption.id
+              optionId: `PVTSO_${statusOption.id}`
             });
       
             console.log("✅ Pull Request added to project and status set.");

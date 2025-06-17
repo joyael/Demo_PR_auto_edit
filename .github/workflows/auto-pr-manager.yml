@@ -117,6 +117,41 @@ jobs:
             console.log(itemId)
             console.log("Field ID : ")
             console.log(statusField.id)
+
+            //code for gettign manually  set option
+            const projectId = 'PVT_kwHOBPugB84A6p1-'; // your actual project ID
+            const itemId = 'PVTI_lAHOBPugB84A6p1-zgblPDY'; // PR item ID in the project
+            const itemFieldsRes = await github.graphql(`
+              query($itemId: ID!) {
+                node(id: $itemId) {
+                  ... on ProjectV2Item {
+                    fieldValues(first: 20) {
+                      nodes {
+                        ... on ProjectV2ItemFieldSingleSelectValue {
+                          field {
+                            ... on ProjectV2SingleSelectField {
+                              name
+                            }
+                          }
+                          optionId
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `, {
+              itemId: itemId
+            });
+            
+            const fieldValues = itemFieldsRes.node.fieldValues.nodes;
+            
+            for (const field of fieldValues) {
+              if (field.field?.name === "Status") {
+                console.log("SingleSelectOptionId for Status:", field.optionId);
+              }
+            }
+
       
             // Update status
             await github.graphql(`

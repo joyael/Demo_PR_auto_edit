@@ -105,6 +105,10 @@ jobs:
             if (!statusField) throw new Error(`Field "${statusFieldName}" not found`);
             const statusOption = statusField.options.find(o => o.name === statusOptionName);
             if (!statusOption) throw new Error(`Option "${statusOptionName}" not found`);
+            console.log("Status Field : ")
+            console.log(statusField)
+            console.log("Status Option : ")
+            console.log(statusOption)
       
             // Update status
             await github.graphql(`

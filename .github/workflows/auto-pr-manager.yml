@@ -86,6 +86,7 @@ jobs:
                   ... on ProjectV2 {
                     fields(first: 20) {
                       nodes {
+                        __typename
                         ... on ProjectV2SingleSelectField {
                           id
                           name
@@ -100,6 +101,7 @@ jobs:
                 }
               }
             `, { projectId });
+
       
             const statusField = fieldsRes.node.fields.nodes.find(f => f.name === statusFieldName);
             if (!statusField) throw new Error(`Field "${statusFieldName}" not found`);

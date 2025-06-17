@@ -111,6 +111,12 @@ jobs:
             console.log(statusField)
             console.log("Status Option : ")
             console.log(statusOption)
+            console.log("Project ID : ")
+            console.log(projectId)
+            console.log("Item ID : ")
+            console.log(itemId)
+            console.log("Field ID : ")
+            console.log(statusField.id)
       
             // Update status
             await github.graphql(`

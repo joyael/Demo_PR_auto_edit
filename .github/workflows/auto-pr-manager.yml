@@ -130,12 +130,13 @@ jobs:
                 $projectId: ID!, 
                 $itemId: ID!, 
                 $fieldId: ID!,
+                $optionId: String!
               ) {
                 updateProjectV2ItemFieldValue(input: {
                   projectId: $projectId,
                   itemId: $itemId,
                   fieldId: $fieldId,
-                  value: { singleSelectOptionId: "f75ad846" }
+                  value: { singleSelectOptionId: $optionId }
                 }) {
                   projectV2Item {
                     id
@@ -146,6 +147,7 @@ jobs:
               projectId,
               itemId,
               fieldId: statusField.id
+              optionId: statusOption.id
             });
       
             console.log("Pull Request added to project and status set.");

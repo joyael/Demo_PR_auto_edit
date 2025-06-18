@@ -117,6 +117,7 @@ jobs:
             console.log(itemId)
             console.log("Field ID : ")
             console.log(statusField.id)
+            let optionId = String(statusOption.id);
 
       
             // Update status
@@ -130,7 +131,7 @@ jobs:
                   projectId: $projectId,
                   itemId: $itemId,
                   fieldId: $fieldId,
-                  value: { singleSelectOptionId: statusOption.id }
+                  value: { singleSelectOptionId: optionId }
                 }) {
                   projectV2Item {
                     id

@@ -121,7 +121,11 @@ jobs:
       
             // Update status
             await github.graphql(`
-              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: ID!) {
+              mutation(
+                $projectId: ID!, 
+                $itemId: ID!, 
+                $fieldId: ID!,
+              ) {
                 updateProjectV2ItemFieldValue(input: {
                   projectId: $projectId,
                   itemId: $itemId,
@@ -136,8 +140,7 @@ jobs:
             `, {
               projectId,
               itemId,
-              fieldId: statusField.id,
-              optionId: `PVTSSO_lAHOBPugB84A6p1-${statusOption.id}`
+              fieldId: statusField.id
             });
       
             console.log("✅ Pull Request added to project and status set.");

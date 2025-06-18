@@ -118,39 +118,6 @@ jobs:
             console.log("Field ID : ")
             console.log(statusField.id)
 
-            //code for gettign manually  set option
-            
-            const itemFieldsRes = await github.graphql(`
-              query($itemId: ID!) {
-                node(id: $itemId) {
-                  ... on ProjectV2Item {
-                    fieldValues(first: 20) {
-                      nodes {
-                        ... on ProjectV2ItemFieldSingleSelectValue {
-                          field {
-                            ... on ProjectV2SingleSelectField {
-                              name
-                            }
-                          }
-                          optionId
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            `, {
-              itemId: itemId
-            });
-            
-            const fieldValues = itemFieldsRes.node.fieldValues.nodes;
-            
-            for (const field of fieldValues) {
-              if (field.field?.name === "Status") {
-                console.log("SingleSelectOptionId for Status:", field.optionId);
-              }
-            }
-
       
             // Update status
             await github.graphql(`
@@ -159,7 +126,7 @@ jobs:
                   projectId: $projectId,
                   itemId: $itemId,
                   fieldId: $fieldId,
-                  value: { singleSelectOptionId: $optionId }
+                  value: { singleSelectOptionId: 'f75ad846' }
                 }) {
                   projectV2Item {
                     id

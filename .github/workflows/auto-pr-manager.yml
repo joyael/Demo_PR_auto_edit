@@ -45,7 +45,7 @@ jobs:
             const pr = context.payload.pull_request;
             const projectName = "GitHub Issue Tracker Sync";
             const statusFieldName = "Status";
-            const statusOptionName = "Todo";
+            const statusOptionName = "Ready";
             const prNodeId = pr.node_id;
       
             // Fetch all Projects to find the one with matching name

@@ -2,7 +2,9 @@ name: PR Manager - Auto Assign & Project
 
 on:
   pull_request:
-    types: [opened, review_requested]
+    types: [opened]
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   handle-pr:
@@ -35,7 +37,7 @@ jobs:
             
 
       - name: Add PR to Project & Set Status on review request
-        if: github.event_name == 'pull_request' && github.event.action == 'review_requested'
+        if: github.event_name == 'pull_request_review' && github.event.review.state == 'changes_requested'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GH_PAT }}

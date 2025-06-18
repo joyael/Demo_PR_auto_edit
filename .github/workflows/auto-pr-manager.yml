@@ -146,7 +146,7 @@ jobs:
             `, {
               projectId,
               itemId,
-              fieldId: statusField.id
+              fieldId: statusField.id,
               optionId: statusOption.id
             });
       

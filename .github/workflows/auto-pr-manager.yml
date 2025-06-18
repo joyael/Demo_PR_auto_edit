@@ -145,5 +145,5 @@ jobs:
               fieldId: statusField.id
             });
       
-            console.log("✅ Pull Request added to project and status set.");
+            console.log("Pull Request added to project and status set.");
       

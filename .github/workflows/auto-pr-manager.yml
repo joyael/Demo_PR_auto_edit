@@ -119,6 +119,9 @@ jobs:
             console.log(itemId)
             console.log("Field ID : ")
             console.log(statusField.id)
+            const MY_STRING_CONSTANT = String(statusOption.id);
+            console.log("String constant : ");
+            console.log(MY_STRING_CONSTANT);
 
       
             // Update status

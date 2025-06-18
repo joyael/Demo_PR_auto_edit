@@ -130,7 +130,7 @@ jobs:
                   projectId: $projectId,
                   itemId: $itemId,
                   fieldId: $fieldId,
-                  value: { singleSelectOptionId: "f75ad846" }
+                  value: { singleSelectOptionId: statusOption.id }
                 }) {
                   projectV2Item {
                     id

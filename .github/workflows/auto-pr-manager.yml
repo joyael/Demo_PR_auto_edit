@@ -22,19 +22,14 @@ jobs:
           script: |
             const pr = context.payload.pull_request;
             const author = pr.user.login;
-            const owner = context.repo.owner;
-            const reviewers = [owner]; // Owner as reviewer
 
-            // Assign the author as an assignee
+            // Assign the PR author as an assignee
             await github.rest.issues.addAssignees({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.number,
               assignees: [author]
             });
-
-
-            
 
       - name: Add PR to Project & Set Status on review request
         if: github.event_name == 'pull_request_review' && github.event.review.state == 'changes_requested'
@@ -47,8 +42,8 @@ jobs:
             const statusFieldName = "Status";
             const statusOptionName = "Ready";
             const prNodeId = pr.node_id;
-      
-            // Fetch all Projects to find the one with matching name
+
+            // Fetch all projects in the repository
             const projectRes = await github.graphql(`
               query($owner: String!, $repo: String!) {
                 repository(owner: $owner, name: $repo) {
@@ -64,24 +59,26 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo
             });
-      
-            const projects = projectRes.repository.projectsV2.nodes;
-            const project = projects.find(p => p.title === projectName);
+
+            const project = projectRes.repository.projectsV2.nodes.find(p => p.title === projectName);
             if (!project) throw new Error(`Project "${projectName}" not found`);
             const projectId = project.id;
-      
-            // Add PR to Project
+
+            // Add PR to project
             const addRes = await github.graphql(`
-              mutation($projectId:ID!, $contentId:ID!) {
-                addProjectV2ItemById(input:{projectId:$projectId, contentId:$contentId}) {
+              mutation($projectId: ID!, $contentId: ID!) {
+                addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
                   item { id }
                 }
               }
-            `, { projectId, contentId: prNodeId });
-      
+            `, {
+              projectId,
+              contentId: prNodeId
+            });
+
             const itemId = addRes.addProjectV2ItemById.item.id;
-      
-            // Get project fields to locate "Status"
+
+            // Get fields of the project to locate the "Status" field
             const fieldsRes = await github.graphql(`
               query($projectId: ID!) {
                 node(id: $projectId) {
@@ -104,27 +101,13 @@ jobs:
               }
             `, { projectId });
 
-      
             const statusField = fieldsRes.node.fields.nodes.find(f => f.name === statusFieldName);
             if (!statusField) throw new Error(`Field "${statusFieldName}" not found`);
+
             const statusOption = statusField.options.find(o => o.name === statusOptionName);
             if (!statusOption) throw new Error(`Option "${statusOptionName}" not found`);
-            console.log("Status Field : ")
-            console.log(statusField)
-            console.log("Status Option : ")
-            console.log(statusOption)
-            console.log("Project ID : ")
-            console.log(projectId)
-            console.log("Item ID : ")
-            console.log(itemId)
-            console.log("Field ID : ")
-            console.log(statusField.id)
-            const MY_STRING_CONSTANT = String(statusOption.id);
-            console.log("String constant : ");
-            console.log(MY_STRING_CONSTANT);
 
-      
-            // Update status
+            // Update the status field value in the project item
             await github.graphql(`
               mutation(
                 $projectId: ID!, 
@@ -149,6 +132,6 @@ jobs:
               fieldId: statusField.id,
               optionId: statusOption.id
             });
-      
+
             console.log("Pull Request added to project and status set.");
       

@@ -44,7 +44,8 @@ jobs:
         with:
           github-token: ${{ steps.generate_token.outputs.token }}
           script: |
-            console.log("Token from APP : ", ${{ steps.generate_token.outputs.token }});
+            const { data: repos } = await github.rest.apps.listReposAccessibleToInstallation();
+            console.log("Accessible repositories:", repos.repositories.map(r => r.full_name));
             const pr = context.payload.pull_request;
             const projectName = "GitHub Issue Tracker Sync";
             const statusFieldName = "Status";

@@ -44,6 +44,7 @@ jobs:
         with:
           github-token: ${{ steps.generate_token.outputs.token }}
           script: |
+            console.log("Token from APP : ", ${{ steps.generate_token.outputs.token }});
             const pr = context.payload.pull_request;
             const projectName = "GitHub Issue Tracker Sync";
             const statusFieldName = "Status";

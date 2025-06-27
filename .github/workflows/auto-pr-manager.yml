@@ -66,6 +66,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo
             });
+            console.log("Project data : ",projectRes);
 
             const project = projectRes.repository.projectsV2.nodes.find(p => p.title === projectName);
             if (!project) throw new Error(`Project "${projectName}" not found`);

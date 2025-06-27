@@ -44,6 +44,8 @@ jobs:
         with:
           github-token: ${{ steps.generate_token.outputs.token }}
           script: |
+            const { data: user } = await github.rest.users.getAuthenticated();
+            console.log("Authenticated as:", user.login);
             const pr = context.payload.pull_request;
             const projectName = "GitHub Issue Tracker Sync";
             const statusFieldName = "Status";

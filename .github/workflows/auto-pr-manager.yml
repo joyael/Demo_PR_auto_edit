@@ -52,8 +52,8 @@ jobs:
 
             // Fetch all projects in the repository
             const projectRes = await github.graphql(`
-              query($org: String!) {
-                organization(login: $org) {
+              query($owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) {
                   projectsV2(first: 10) {
                     nodes {
                       id
@@ -63,7 +63,8 @@ jobs:
                 }
               }
             `, {
-              org: context.repo.owner
+              owner: context.repo.owner,
+              repo: context.repo.repo
             });
 
             console.log("Project data : ",projectRes);

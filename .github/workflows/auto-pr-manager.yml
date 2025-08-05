@@ -178,3 +178,8 @@ jobs:
                 assignees: reviewers
               });
             }
+      - name: Print Event
+        run: |
+          echo "Event Name: ${GITHUB_EVENT_NAME}"
+          echo "Event Action: ${GITHUB_EVENT_ACTION}"
+          echo "Full Event: ${GITHUB_EVENT}"

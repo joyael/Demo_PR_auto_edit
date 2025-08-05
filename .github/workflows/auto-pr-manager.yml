@@ -137,4 +137,45 @@ jobs:
             });
 
             console.log("Pull Request added to project and status set.");
-      
+      - name: Assign PR to reviewers
+        if: github.event_name == 'pull_request' && github.event.action == 'review_requested'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pull_number = context.payload.pull_request.number;
+
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pull_number
+            });
+
+            const currentAssignees = issue.data.assignees.map(a => a.login);
+
+            // Remove existing assignees if there are any
+            if (currentAssignees.length > 0) {
+              await github.rest.issues.removeAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pull_number,
+                assignees: currentAssignees
+              });
+            }
+
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pull_number
+            });
+
+            const reviewers = pr.data.requested_reviewers.map(r => r.login);
+
+            // Assign reviewers as assignees
+            if (reviewers.length > 0) {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pull_number,
+                assignees: reviewers
+              });
+            }

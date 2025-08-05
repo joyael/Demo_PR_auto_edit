@@ -2,7 +2,7 @@ name: PR_Manager__Auto_Assign_and_Project
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, review_requested]
   pull_request_review:
     types: [submitted]
 

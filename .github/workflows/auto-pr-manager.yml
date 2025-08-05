@@ -16,8 +16,7 @@ jobs:
 
     steps:
       - name: Assign PR to author & owner
-        # if: github.event_name == 'pull_request' && github.event.action == 'opened'
-        if: github.event_name == 'pull_request_review' && github.event.review.state == 'changes_requested'
+        if: github.event_name == 'pull_request' && github.event.action == 'opened'
         uses: actions/github-script@v7
         with:
           script: |

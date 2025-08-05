@@ -1,0 +1,175 @@
+name: PR_Manager__Auto_Assign_and_Project
+
+on:
+  pull_request:
+    types: [opened, review_requested]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  handle-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+      contents: read
+
+    steps:
+      - name: Assign PR to author & owner
+        # if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        if: github.event_name == 'pull_request_review' && github.event.review.state == 'changes_requested'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+
+            // Assign the PR author as an assignee
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              assignees: [author]
+            });
+
+      - name: Add PR to Project & Set Status on review request
+        if: github.event_name == 'pull_request_review' && github.event.review.state == 'changes_requested'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          script: |
+            const pr = context.payload.pull_request;
+            const projectName = "GitHub Issue Tracker Sync";
+            const statusFieldName = "Status";
+            const statusOptionName = "Testing";
+            const prNodeId = pr.node_id;
+
+            // Fetch all projects in the repository
+            const projectRes = await github.graphql(`
+              query($owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) {
+                  projectsV2(first: 10) {
+                    nodes {
+                      id
+                      title
+                    }
+                  }
+                }
+              }
+            `, {
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+
+            console.log("Project data : ",projectRes);
+
+            const project = projectRes.repository.projectsV2.nodes.find(p => p.title === projectName);
+            if (!project) throw new Error(`Project "${projectName}" not found`);
+            const projectId = project.id;
+
+            // Add PR to project
+            const addRes = await github.graphql(`
+              mutation($projectId: ID!, $contentId: ID!) {
+                addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+                  item { id }
+                }
+              }
+            `, {
+              projectId,
+              contentId: prNodeId
+            });
+
+            const itemId = addRes.addProjectV2ItemById.item.id;
+
+            // Get fields of the project to locate the "Status" field
+            const fieldsRes = await github.graphql(`
+              query($projectId: ID!) {
+                node(id: $projectId) {
+                  ... on ProjectV2 {
+                    fields(first: 20) {
+                      nodes {
+                        __typename
+                        ... on ProjectV2SingleSelectField {
+                          id
+                          name
+                          options {
+                            id
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `, { projectId });
+
+            const statusField = fieldsRes.node.fields.nodes.find(f => f.name === statusFieldName);
+            if (!statusField) throw new Error(`Field "${statusFieldName}" not found`);
+
+            const statusOption = statusField.options.find(o => o.name === statusOptionName);
+            if (!statusOption) throw new Error(`Option "${statusOptionName}" not found`);
+
+            // Update the status field value in the project item
+            await github.graphql(`
+              mutation(
+                $projectId: ID!, 
+                $itemId: ID!, 
+                $fieldId: ID!,
+                $optionId: String!
+              ) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $projectId,
+                  itemId: $itemId,
+                  fieldId: $fieldId,
+                  value: { singleSelectOptionId: $optionId }
+                }) {
+                  projectV2Item {
+                    id
+                  }
+                }
+              }
+            `, {
+              projectId,
+              itemId,
+              fieldId: statusField.id,
+              optionId: statusOption.id
+            });
+
+            console.log("Pull Request added to project and status set.");
+      - name: Assign PR to reviewers
+        if: github.event_name == 'pull_request' && github.event.action == 'review_requested'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pull_number = context.payload.pull_request.number;
+
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pull_number
+            });
+
+            const currentAssignees = pr.data.assignees.map(a => a.login);
+
+            // Remove existing assignees if there are any
+            if (currentAssignees.length > 0) {
+              await github.rest.issues.removeAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pull_number,
+                assignees: currentAssignees
+              });
+            }
+
+            const reviewers = pr.data.requested_reviewers.map(r => r.login);
+
+            // Assign reviewers as assignees
+            if (reviewers.length > 0) {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pull_number,
+                assignees: reviewers
+              });
+            }

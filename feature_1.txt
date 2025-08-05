@@ -1,0 +1,8 @@
+Yes, you can create two pull requests after merging the first one.
+Here's a step-by-step overview:
+
+    Merge the first pull request: Merge the initial pull request into the target branch (e.g., main).
+    Create a new branch for the second pull request: Create a new branch from the updated target branch (e.g., feature/new-feature-2).
+    Make changes and commit: Make the necessary changes, commit them, and push the new branch.
+    Create the second pull request: Create a new pull request from the second feature branch (e.g., feature/new-feature-2) to the target branch (e.g., main).
+    Create a third branch for the third pull request (optional): If you want to create a third pull request, repeat steps 2-4.

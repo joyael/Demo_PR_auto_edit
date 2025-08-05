@@ -144,13 +144,13 @@ jobs:
           script: |
             const pull_number = context.payload.pull_request.number;
 
-            const issue = await github.rest.issues.get({
+            const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: pull_number
+              pull_number: pull_number
             });
 
-            const currentAssignees = issue.data.assignees.map(a => a.login);
+            const currentAssignees = pr.data.assignees.map(a => a.login);
 
             // Remove existing assignees if there are any
             if (currentAssignees.length > 0) {
@@ -161,12 +161,6 @@ jobs:
                 assignees: currentAssignees
               });
             }
-
-            const pr = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pull_number
-            });
 
             const reviewers = pr.data.requested_reviewers.map(r => r.login);
 
